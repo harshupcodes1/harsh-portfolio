@@ -7,9 +7,16 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+// ✅ CORS (Vercel allow)
+app.use(
+  cors({
+    origin: "*",
+  })
+);
+
 app.use(express.json());
 
+// ✅ CONTACT ROUTE
 app.post("/send-email", async (req, res) => {
   const { name, email, message } = req.body;
 
@@ -23,23 +30,39 @@ app.post("/send-email", async (req, res) => {
     });
 
     await transporter.sendMail({
-      from: email,
+      from: `"Portfolio Contact" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER,
       subject: `Portfolio Contact | ${name}`,
+      replyTo: email,
       text: `
 Name: ${name}
 Email: ${email}
-Message: ${message}
+
+Message:
+${message}
       `,
     });
 
-    res.status(200).json({ success: true });
+    res.status(200).json({
+      success: true,
+      message: "Email sent successfully",
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false });
+    console.error("EMAIL ERROR:", error);
+    res.status(500).json({
+      success: false,
+      message: "Email failed",
+    });
   }
 });
 
-app.listen(5000, () => {
-  console.log("✅ Backend running on http://localhost:5000");
+// ✅ HEALTH CHECK (VERY IMPORTANT FOR RENDER)
+app.get("/", (req, res) => {
+  res.send("Backend is running 🚀");
+});
+
+// ✅ PORT FIX (RENDER REQUIRED)
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`✅ Backend running on port ${PORT}`);
 });
