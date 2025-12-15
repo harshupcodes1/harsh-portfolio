@@ -7,7 +7,7 @@ dotenv.config();
 
 const app = express();
 
-// ✅ CORS (Vercel allow)
+// ✅ CORS (Vercel frontend allow)
 app.use(
   cors({
     origin: "*",
@@ -16,7 +16,7 @@ app.use(
 
 app.use(express.json());
 
-// ✅ CONTACT ROUTE
+// ✅ CONTACT API
 app.post("/send-email", async (req, res) => {
   const { name, email, message } = req.body;
 
@@ -28,25 +28,21 @@ app.post("/send-email", async (req, res) => {
   }
 
   try {
-    // ✅ FIXED SMTP (NO TIMEOUT ON RENDER)
     const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false, // MUST be false
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      secure: false, // true only for 465
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-      tls: {
-        rejectUnauthorized: false,
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
       },
     });
 
     await transporter.sendMail({
-      from: `"Portfolio Contact" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER,
-      replyTo: email,
+      from: `"Portfolio Contact" <${process.env.SMTP_USER}>`,
+      to: process.env.EMAIL_TO,
       subject: `Portfolio Contact | ${name}`,
+      replyTo: email,
       text: `
 Name: ${name}
 Email: ${email}
@@ -62,7 +58,6 @@ ${message}
     });
   } catch (error) {
     console.error("EMAIL ERROR:", error);
-
     res.status(500).json({
       success: false,
       message: "Email failed",
@@ -70,15 +65,13 @@ ${message}
   }
 });
 
-// ✅ HEALTH CHECK (VERY IMPORTANT FOR RENDER)
+// ✅ HEALTH CHECK (Render needs this)
 app.get("/", (req, res) => {
   res.send("Backend is running 🚀");
 });
 
-// ✅ PORT FIX (RENDER REQUIRED)
+// ✅ PORT (Render required)
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Backend running on port ${PORT}`);
-  console.log("EMAIL_USER:", process.env.EMAIL_USER);
-  console.log("EMAIL_PASS EXISTS:", !!process.env.EMAIL_PASS);
 });
