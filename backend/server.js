@@ -7,31 +7,23 @@ dotenv.config();
 
 const app = express();
 
-// ✅ CORS (Vercel frontend allow)
-app.use(
-  cors({
-    origin: "*",
-  })
-);
-
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 
-// ✅ CONTACT API
+/* HEALTH CHECK */
+app.get("/", (req, res) => {
+  res.send("Backend is running 🚀");
+});
+
+/* CONTACT FORM */
 app.post("/send-email", async (req, res) => {
   const { name, email, message } = req.body;
-
-  if (!name || !email || !message) {
-    return res.status(400).json({
-      success: false,
-      message: "All fields are required",
-    });
-  }
 
   try {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT),
-      secure: false, // true only for 465
+      secure: false, // MUST be false for port 587
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
@@ -41,8 +33,8 @@ app.post("/send-email", async (req, res) => {
     await transporter.sendMail({
       from: `"Portfolio Contact" <${process.env.SMTP_USER}>`,
       to: process.env.EMAIL_TO,
-      subject: `Portfolio Contact | ${name}`,
       replyTo: email,
+      subject: `New Portfolio Message from ${name}`,
       text: `
 Name: ${name}
 Email: ${email}
@@ -56,8 +48,8 @@ ${message}
       success: true,
       message: "Email sent successfully",
     });
-  } catch (error) {
-    console.error("EMAIL ERROR:", error);
+  } catch (err) {
+    console.error("EMAIL ERROR:", err);
     res.status(500).json({
       success: false,
       message: "Email failed",
@@ -65,13 +57,7 @@ ${message}
   }
 });
 
-// ✅ HEALTH CHECK (Render needs this)
-app.get("/", (req, res) => {
-  res.send("Backend is running 🚀");
-});
-
-// ✅ PORT (Render required)
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`✅ Backend running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
