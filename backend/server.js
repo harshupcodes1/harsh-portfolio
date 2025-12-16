@@ -1,6 +1,6 @@
 import express from "express";
-import nodemailer from "nodemailer";
 import cors from "cors";
+import fetch from "node-fetch";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,62 +10,68 @@ const app = express();
 app.use(cors({ origin: "*" }));
 app.use(express.json());
 
-/* ================= EMAIL ROUTE ================= */
+// ✅ HEALTH CHECK
+app.get("/", (req, res) => {
+  res.send("Backend running 🚀");
+});
+
+// ✅ SEND EMAIL (BREVO API)
 app.post("/send-email", async (req, res) => {
   const { name, email, message } = req.body;
 
   if (!name || !email || !message) {
-    return res.status(400).json({
-      success: false,
-      message: "Missing fields",
-    });
+    return res.status(400).json({ message: "Missing fields" });
   }
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      secure: false, // IMPORTANT for 587
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "api-key": process.env.BREVO_API_KEY,
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({
+        sender: {
+          name: "Portfolio Contact",
+          email: process.env.EMAIL_TO,
+        },
+        to: [
+          {
+            email: process.env.EMAIL_TO,
+            name: "Harsh",
+          },
+        ],
+        replyTo: {
+          email: email,
+          name: name,
+        },
+        subject: `Portfolio Contact | ${name}`,
+        htmlContent: `
+          <h3>New Portfolio Message</h3>
+          <p><b>Name:</b> ${name}</p>
+          <p><b>Email:</b> ${email}</p>
+          <p><b>Message:</b></p>
+          <p>${message}</p>
+        `,
+      }),
     });
 
-    await transporter.sendMail({
-      from: `"Portfolio Contact" <${process.env.SMTP_USER}>`,
-      to: process.env.EMAIL_TO,
-      replyTo: email,
-      subject: `New Contact from ${name}`,
-      text: `
-Name: ${name}
-Email: ${email}
+    const data = await response.json();
 
-Message:
-${message}
-      `,
-    });
+    if (!response.ok) {
+      console.error("BREVO ERROR:", data);
+      return res.status(500).json({ message: "Email failed" });
+    }
 
-    return res.status(200).json({
-      success: true,
-      message: "Email sent successfully",
-    });
-  } catch (error) {
-    console.error("EMAIL ERROR:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Email failed",
-    });
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("SERVER ERROR:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-/* ================= HEALTH CHECK ================= */
-app.get("/", (req, res) => {
-  res.send("Backend is running 🚀");
-});
-
-/* ================= START SERVER ================= */
-const PORT = process.env.PORT || 5000;
+// ✅ PORT
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
