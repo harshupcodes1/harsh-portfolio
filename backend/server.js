@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 
+
 dotenv.config();
 
 const app = express();
@@ -14,7 +15,7 @@ app.get("/", (req, res) => {
 
 app.post("/send-email", async (req, res) => {
   const { name, email, message } = req.body;
-
+  console.log("body==>",req.body)
   try {
     const response = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
@@ -42,7 +43,25 @@ app.post("/send-email", async (req, res) => {
         `,
       }),
     });
-
+console.log("checking==>",{
+        sender: {
+          name: "Portfolio Contact",
+          email: process.env.SENDER_EMAIL,
+        },
+        to: [
+          {
+            email: process.env.EMAIL_TO,
+            name: "Harsh",
+          },
+        ],
+        subject: `Portfolio Contact | ${name}`,
+        htmlContent: `
+          <h3>New Contact Message</h3>
+          <p><b>Name:</b> ${name}</p>
+          <p><b>Email:</b> ${email}</p>
+          <p><b>Message:</b><br/>${message}</p>
+        `,
+      })
     if (!response.ok) {
       const err = await response.text();
       throw new Error(err);
@@ -50,7 +69,7 @@ app.post("/send-email", async (req, res) => {
 
     res.status(200).json({ success: true });
   } catch (error) {
-    console.error("EMAIL ERROR:", error.message);
+    console.error("EMAIL ERROR:", error);
     res.status(500).json({ success: false, message: "Email failed" });
   }
 });
