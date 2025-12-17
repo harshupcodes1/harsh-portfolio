@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
- 
+ import {
+  PaperPlaneTilt,
+  GithubLogo,
+  LinkedinLogo,
+  EnvelopeSimple,
+  MapPin,
+} from "@phosphor-icons/react";
 
 gsap.registerPlugin(ScrollTrigger);
 
