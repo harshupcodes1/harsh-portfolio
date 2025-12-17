@@ -26,11 +26,11 @@ app.post("/send-email", async (req, res) => {
       body: JSON.stringify({
         sender: {
           name: "Portfolio Contact",
-          email: process.env.SENDER_EMAIL,
+          email: process.env.EMAIL_USER,
         },
         to: [
           {
-            email: process.env.EMAIL_TO,
+            email: process.env.EMAIL_USER,
             name: "Harsh",
           },
         ],
@@ -46,11 +46,11 @@ app.post("/send-email", async (req, res) => {
 console.log("checking==>",{
         sender: {
           name: "Portfolio Contact",
-          email: process.env.SENDER_EMAIL,
+          email: process.env.EMAIL_USER,
         },
         to: [
           {
-            email: process.env.EMAIL_TO,
+            email: process.env.EMAIL_USER,
             name: "Harsh",
           },
         ],
