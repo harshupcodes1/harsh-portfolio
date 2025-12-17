@@ -1,15 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import {
-  PaperPlaneTilt,
-  GithubLogo,
-  LinkedinLogo,
-  EnvelopeSimple,
-  MapPin,
-} from "@phosphor-icons/react";
+ 
 
 gsap.registerPlugin(ScrollTrigger);
+
+// ✅ BACKEND URL (FROM ENV)
+const API_URL = "https://harsh-portfolio-backend-8h4u.onrender.com";
 
 const Contact = () => {
   const sectionRef = useRef(null);
@@ -79,22 +76,19 @@ const Contact = () => {
     }
   }, []);
 
-  // ✅ REAL BACKEND EMAIL SUBMIT
+  // ✅ FINAL SUBMIT HANDLER
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(
-        import.meta.env.VITE_API_URL + "/send-email",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      );
+      const response = await fetch(`${API_URL}/send-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
 
       const data = await response.json();
 
@@ -102,7 +96,7 @@ const Contact = () => {
         alert("✅ Message sent successfully!");
         setFormData({ name: "", email: "", message: "" });
       } else {
-        alert(data.message || "❌ Failed to send message");
+        alert(data.message || "❌ Email failed");
       }
     } catch (error) {
       console.error(error);
@@ -112,9 +106,8 @@ const Contact = () => {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   return (
     <section
@@ -122,43 +115,27 @@ const Contact = () => {
       ref={sectionRef}
       className="relative py-32 px-6 overflow-hidden"
     >
-      <div className="floating-orb w-80 h-80 bg-neon-purple/10 top-20 -left-20" />
-      <div className="floating-orb w-64 h-64 bg-neon-cyan/10 bottom-20 -right-20" />
-
       <div className="max-w-4xl mx-auto">
         <div ref={titleRef} className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="text-foreground">Get In </span>
-            <span className="gradient-text">Touch</span>
+            Get In <span className="gradient-text">Touch</span>
           </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">
+          <p className="text-muted-foreground">
             Have a project in mind? Let’s work together.
           </p>
-          <div className="w-24 h-1 bg-gradient-to-r from-primary to-secondary mx-auto rounded-full mt-4" />
         </div>
 
         <div className="grid md:grid-cols-2 gap-12">
           {/* INFO */}
-          <div className="space-y-8">
-            <div className="glass-card p-6">
-              <div className="flex items-center gap-4">
-                <EnvelopeSimple size={24} className="text-primary" />
-                <a
-                  href="mailto:upadhyayharsh622@gmail.com"
-                  className="text-muted-foreground hover:text-primary"
-                >
-                  upadhyayharsh622@gmail.com
-                </a>
-              </div>
+          <div className="space-y-6">
+            <div className="glass-card p-6 flex gap-4 items-center">
+              <EnvelopeSimple size={24} />
+              <span>upadhyayharsh622@gmail.com</span>
             </div>
 
-            <div className="glass-card p-6">
-              <div className="flex items-center gap-4">
-                <MapPin size={24} className="text-secondary" />
-                <p className="text-muted-foreground">
-                  Ahmedabad, Gujarat, India
-                </p>
-              </div>
+            <div className="glass-card p-6 flex gap-4 items-center">
+              <MapPin size={24} />
+              <span>Ahmedabad, Gujarat, India</span>
             </div>
 
             <div ref={socialRef} className="flex gap-4">
@@ -166,17 +143,15 @@ const Contact = () => {
                 href="https://github.com/harshupcodes1"
                 target="_blank"
                 rel="noreferrer"
-                className="w-12 h-12 glass-card rounded-xl flex items-center justify-center"
               >
-                <GithubLogo size={22} />
+                <GithubLogo size={24} />
               </a>
               <a
                 href="https://www.linkedin.com/in/upadhyay-harsh11"
                 target="_blank"
                 rel="noreferrer"
-                className="w-12 h-12 glass-card rounded-xl flex items-center justify-center"
               >
-                <LinkedinLogo size={22} />
+                <LinkedinLogo size={24} />
               </a>
             </div>
           </div>
@@ -185,46 +160,45 @@ const Contact = () => {
           <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
             <div className="form-input">
               <input
-                type="text"
                 name="name"
+                placeholder="Your Name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="Your Name"
                 required
-                className="w-full px-6 py-4 glass-input rounded-xl"
+                className="glass-input w-full px-6 py-4 rounded-xl"
               />
             </div>
 
             <div className="form-input">
               <input
-                type="email"
                 name="email"
+                type="email"
+                placeholder="Your Email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="Your Email"
                 required
-                className="w-full px-6 py-4 glass-input rounded-xl"
+                className="glass-input w-full px-6 py-4 rounded-xl"
               />
             </div>
 
             <div className="form-input">
               <textarea
                 name="message"
+                placeholder="Your Message"
+                rows={5}
                 value={formData.message}
                 onChange={handleChange}
-                placeholder="Your Message"
                 required
-                rows={5}
-                className="w-full px-6 py-4 glass-input rounded-xl resize-none"
+                className="glass-input w-full px-6 py-4 rounded-xl resize-none"
               />
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full btn-hero flex items-center justify-center gap-3"
+              className="btn-hero w-full flex justify-center gap-2"
             >
-              <span>{isSubmitting ? "Sending..." : "Send Message"}</span>
+              {isSubmitting ? "Sending..." : "Send Message"}
               <PaperPlaneTilt size={20} />
             </button>
           </form>
